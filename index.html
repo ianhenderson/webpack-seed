@@ -2,14 +2,15 @@
 <html>
 <head>
 	<title>webpack-seed</title>
+	<link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="styles/styles.css">
 </head>
 <body>
 
+	<div id="mount"></div>
     <script src="assets/bundle.js" charset="utf-8"></script>
-
     <script type="text/javascript">
-        TestLib.init();
+        TestLib.render(document.getElementById('mount'));
     </script>
 </body>
 </html>
