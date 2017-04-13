@@ -3,7 +3,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 
 const h = require('react-hyperscript');
-const { br, table, thead, tbody, th, td, tr, div, span, h1, h4, p, input, button } = require('hyperscript-helpers')(h);
+const { br, table, thead, tbody, th, td, tr, div, span, h1, h4, p, input, button, form } = require('hyperscript-helpers')(h);
 const el = React.createElement;
 
 // Internal deps
@@ -15,12 +15,14 @@ let ROOT
 class TestApp extends GenericApp {
     constructor({ basemodel, viewmodel, dataloader, notifyfn } = {}){
         super({ basemodel, viewmodel, dataloader, notifyfn })
-        this._gumboURI = 'https://statsapi.mlb.com/api/v1/game/487614/feed/live'
-        this.getGuids = this.getGuids.bind(this)
+        this._apiPrefix = 'https://statsapi.mlb.com/api/v1'
+        this.getGumbo = this.getGumbo.bind(this)
     }
 
-    getGuids(){
-        this.loader.get(this._gumboURI)
+    getGumbo(){
+        const gamepk = this.vm.get('gamepk')
+        const url = `${this._apiPrefix}/game/${gamepk}/feed/live`
+        this.loader.get(url)
             .then(res => {
                 return res.json()
             })
@@ -35,6 +37,7 @@ class TestApp extends GenericApp {
 
 const app = new TestApp({
     basemodel: {
+        gamepk: 487614,
         inputValue: '',
         plays: []
     },
@@ -46,17 +49,27 @@ const app = new TestApp({
     Components
  */
 
-function onInput(e){
+function onSearchFormInput(e){
     app.vm.set('inputValue', e.target.value)
 }
 
+function onSearchFormSubmit(e){
+    e.preventDefault()
+    app.getGumbo()
+}
+
 function App(args) {
-     return div( [
-        input('.main', {onInput}),
-        button('.btn', {onClick: app.getGuids}, 'Get guids'),
-        // Table(),
-        GumboTable(),
-     ]);
+    return div( [
+        SearchForm(args),
+        GumboTable(args)
+    ])
+}
+
+function SearchForm(args) {
+    return form( {onSubmit: onSearchFormSubmit}, [
+        input('.main', {onInput: onSearchFormInput}),
+        button('.btn', 'Get guids')
+    ])
 }
 
 function GumboTable(){

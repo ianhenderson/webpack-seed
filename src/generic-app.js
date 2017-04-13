@@ -19,7 +19,7 @@ class GenericApp {
     constructor({
         basemodel = {},
         viewmodel = DefaultViewModel,
-        dataloader = new DefaultDataLoader(),
+        dataloader = DefaultDataLoader,
         notifyfn = defaultNotifyFn
     } = {}){
         let _viewmodel
@@ -29,7 +29,7 @@ class GenericApp {
             _viewmodel = viewmodel
         }
         this.vm = new _viewmodel({ basemodel, notifyfn })
-        this.loader = dataloader
+        this.loader = new dataloader()
         this._notifyfn = notifyfn
     }
 }
