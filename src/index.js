@@ -17,6 +17,7 @@ class TestApp extends GenericApp {
         super({ basemodel, viewmodel, dataloader, notifyfn })
         this._apiPrefix = 'https://statsapi.mlb.com/api/v1'
         this.getGumbo = this.getGumbo.bind(this)
+        this._collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'})
     }
 
     getGumbo(){
@@ -72,8 +73,18 @@ function SearchForm(args) {
     ])
 }
 
+function onGumboTableHeaderClick(e) {
+    const { innerText } = e.target
+    const sortkey = app.vm.get('sortkey')
+    if ( innerText === sortkey ) {
+        app.vm.set('sortreverse', true)
+    } else {
+        app.vm.set('sortreverse', false)
+        app.vm.set('sortkey', innerText)
+    }
+}
 function GumboTable(){
-    let plays = app.vm.get('plays')
+    const plays = app.vm.get('plays')
     let theaders = []
     let tdata = []
     if (plays.length) {
@@ -81,6 +92,24 @@ function GumboTable(){
         theaders = headers.map(h => th(h))
         tdata = plays
         .filter(p => p.result.description.toLowerCase().includes( app.vm.get('inputValue') ))
+        .sort((a,b) => {
+            const sortkey = app.vm.get('sortkey')
+            const sortreverse = app.vm.get('sortreverse')
+            let comp
+
+            if ( !sortkey ) {
+                comp = 1
+            } else {
+                comp = app._collator.compare( a.result[sortkey], b.result[sortkey] )
+            }
+
+            if ( sortreverse ) {
+                comp *= -1
+            }
+
+
+            return comp
+        })
         .map(p => {
             let r = p.result
             let tds = headers.map( h => td(r[h]) )
@@ -89,7 +118,7 @@ function GumboTable(){
 
     }
     return table('.table', [
-        thead([
+        thead( {onClick: onGumboTableHeaderClick}, [
             tr(theaders)
         ]),
         tbody(tdata)
