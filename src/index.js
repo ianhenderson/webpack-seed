@@ -38,7 +38,7 @@ const app = new TestApp({
         inputValue: '',
         plays: []
     },
-    // viewmodel: 'proxy',
+    // viewmodel: 'proxy', // use ES6 Proxy-based viewmodel
     notifyfn: render
 })
 

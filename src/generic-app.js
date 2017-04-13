@@ -4,6 +4,17 @@ function defaultNotifyFn({ key, val, oldval }) {
     console.info(`viewmodel updated:`, { key, val, oldval })
 }
 
+/**
+ * Basic application that you can extend w/ your own methods, logic.
+ * Contains a simple key-value store that will run a user-specified callback
+ * on updates.
+ *
+ * Property explanation:
+ * basemodel: Object of values you may want to initialize app with.
+ * viewmodel: You can specify your own, or use either the default or ES6 Proxy-based ones provided.
+ * dataloader: Library to handle HTTP interactions. Defaults to `window.Fetch`.
+ * notifyfn: Callback that is triggered on viewmodel updates.
+ */
 class GenericApp {
     constructor({
         basemodel = {},
@@ -39,11 +50,11 @@ class ProxyViewModel {
     }
 
     get(key){
-        return this._viewmodel[key]
+        return opath.get(this._viewmodel, key)
     }
 
     set(key, val){
-        return this._viewmodel[key] = val
+        return opath.set(this._viewmodel, key, val)
     }
 }
 
