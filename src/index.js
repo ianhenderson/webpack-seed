@@ -13,8 +13,8 @@ const { GenericApp } = require('./generic-app')
 let ROOT
 
 class TestApp extends GenericApp {
-    constructor({ basemodel, viewmodel, dataloader, renderfn } = {}){
-        super({ basemodel, viewmodel, dataloader, renderfn })
+    constructor({ basemodel, viewmodel, dataloader, notifyfn } = {}){
+        super({ basemodel, viewmodel, dataloader, notifyfn })
         this._gumboURI = 'https://statsapi.mlb.com/api/v1/game/487614/feed/live'
         this.getGuids = this.getGuids.bind(this)
     }
@@ -38,40 +38,9 @@ const app = new TestApp({
         inputValue: '',
         plays: []
     },
-    renderfn: render
+    // viewmodel: 'proxy',
+    notifyfn: render
 })
-
-
-// let viewModel = new Proxy({
-//     inputValue: '',
-//     plays: []
-// }, {
-//     set(target, key, newVal){
-//         target[key] = newVal;
-//         render();
-//         console.log('viewModel update');
-//     }
-// });
-//
-// const API = {
-//     _gumboURI: 'https://statsapi.mlb.com/api/v1/game/487614/feed/live',
-//     getGuids(){
-//         console.log('Fetching gumbo...')
-//         fetch(API._gumboURI)
-//             .then(response => {
-//                 return response.json();
-//             })
-//             .then(data => {
-//                 console.log('Fetching gumbo...complete!')
-//                 viewModel.plays = data.liveData.plays.allPlays
-//             })
-//             .catch(err => {
-//                 console.log(err)
-//             })
-//     }
-// }
-
-
 
 /*
     Components
@@ -137,7 +106,4 @@ function render(args){
     );
 }
 
-const gapp = new GenericApp()
-const pui = new TestApp()
-
-module.exports = { render, app, gapp }
+module.exports = { render, app }

@@ -1,6 +1,6 @@
 const opath = require('object-path')
 
-function defaultRenderFn({ key, val, oldval }) {
+function defaultNotifyFn({ key, val, oldval }) {
     console.info(`viewmodel updated:`, { key, val, oldval })
 }
 
@@ -9,11 +9,41 @@ class GenericApp {
         basemodel = {},
         viewmodel = DefaultViewModel,
         dataloader = new DefaultDataLoader(),
-        renderfn = defaultRenderFn
+        notifyfn = defaultNotifyFn
     } = {}){
-        this.vm = new viewmodel({ basemodel, notifyfn: renderfn })
+        let _viewmodel
+        if ( viewmodel === 'proxy' ) {
+            _viewmodel = ProxyViewModel
+        } else {
+            _viewmodel = viewmodel
+        }
+        this.vm = new _viewmodel({ basemodel, notifyfn })
         this.loader = dataloader
-        this._renderfn = renderfn
+        this._notifyfn = notifyfn
+    }
+}
+
+class ProxyViewModel {
+    constructor({ basemodel = {}, notifyfn } = {}){
+        this._viewmodel = new Proxy(basemodel, {
+            set(target, key, val){
+                const oldval = target[key]
+                target[key] = val;
+                if (notifyfn) {
+                    notifyfn({ key, val, oldval, vm: target })
+                }
+                return target
+            }
+        })
+        this._notifyfn = notifyfn
+    }
+
+    get(key){
+        return this._viewmodel[key]
+    }
+
+    set(key, val){
+        return this._viewmodel[key] = val
     }
 }
 
@@ -22,9 +52,11 @@ class DefaultViewModel {
         this._viewmodel = basemodel
         this._notifyfn = notifyfn
     }
+
     get(key){
         return opath.get(this._viewmodel, key)
     }
+
     set(key, val){
         // save original value
         const oldval = this.get(key)
@@ -46,9 +78,11 @@ class DefaultDataLoader {
         this._loader = loader
         this._logger = logger
     }
+
     log() {
         this._logger.info.apply(null, arguments)
     }
+
     get(url, opts = {}) {
         this.log('GET', { url, opts })
         const params = Object.assign({}, opts, {
@@ -56,6 +90,7 @@ class DefaultDataLoader {
         })
         return this._loader(url, params)
     }
+
     post(url, opts = {}) {
         this.log('POST', { url, opts })
         const params = Object.assign({}, opts, {
@@ -63,6 +98,7 @@ class DefaultDataLoader {
         })
         return this._loader(url, params)
     }
+
     delete(url) {
         this.log('DELETE', { url, opts })
         const params = Object.assign({}, opts, {
@@ -70,6 +106,7 @@ class DefaultDataLoader {
         })
         return this._loader(url, params)
     }
+
     put(url, opts) {
         this.log('PUT', { url, opts })
         const params = Object.assign({}, opts, {
